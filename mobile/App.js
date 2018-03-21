@@ -1,58 +1,67 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- * @flow
- */
+// @flow
+/* eslint no-param-reassign: [0], no-console: [0], no-underscore-dangle: [0] */
 
-import React, { Component } from 'react';
+import React from 'react';
+import { Provider } from 'react-redux';
 import {
-  Platform,
-  StyleSheet,
-  Text,
-  View
-} from 'react-native';
+  routerReducer,
+  routerMiddleware,
+  ConnectedRouter,
+} from 'react-router-redux';
+import debug from 'debug';
+import createHistory from 'history/createMemoryHistory';
+import {
+  createStore,
+  combineReducers,
+  applyMiddleware,
+  compose,
+} from 'redux';
+import thunk from 'redux-thunk';
+import {
+  Switch,
+  Route,
+  Redirect,
+} from 'react-router-dom';
+import { reducer as formReducer } from 'redux-form';
 
-const instructions = Platform.select({
-  ios: 'Press Cmd+R to reload,\n' +
-    'Cmd+D or shake for dev menu',
-  android: 'Double tap R on your keyboard to reload,\n' +
-    'Shake or press menu button for dev menu',
-});
+// Routers
 
-type Props = {};
-export default class App extends Component<Props> {
-  render() {
-    return (
-      <View style={styles.container}>
-        <Text style={styles.welcome}>
-          Welcome to React Native!
-        </Text>
-        <Text style={styles.instructions}>
-          To get started, edit App.js
-        </Text>
-        <Text style={styles.instructions}>
-          {instructions}
-        </Text>
-      </View>
-    );
-  }
+// Redux reducers
+
+// Debug mode
+if (process.env.NODE_ENV !== 'production') {
+  debug.enable('Mobile:*');
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#F5FCFF',
-  },
-  welcome: {
-    fontSize: 20,
-    textAlign: 'center',
-    margin: 10,
-  },
-  instructions: {
-    textAlign: 'center',
-    color: '#333333',
-    marginBottom: 5,
-  },
-});
+const history = createHistory();
+
+export const API_HOST = '';
+
+export const store = createStore(
+  combineReducers({
+    form: formReducer,
+    routing: routerReducer,
+  }),
+  {},
+  compose(
+    applyMiddleware(
+      thunk,
+      routerMiddleware(history),
+    ),
+  ),
+);
+
+function App(): React$Element<*> {
+  return (
+    <Provider store={store}>
+      <ConnectedRouter history={history}>
+        <Switch>
+          <Route path="/" component={null} />
+          <Redirect to={{ pathname: '/' }} />
+        </Switch>
+      </ConnectedRouter>
+    </Provider>
+  );
+}
+
+export default App;
